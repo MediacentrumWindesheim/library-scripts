@@ -86,17 +86,6 @@ function gtag(){dataLayer.push(arguments);}
       }
     });
 
-    shadowRoot.addEventListener('submit', function (e) {
-      var input = shadowRoot.querySelector('input[formcontrolname="input"]');
-      var contentType = shadowRoot.querySelector('.t-search-dropdown-contenttype');
-      var dateFilter = shadowRoot.querySelector('.t-search-dropdown-date');
-      trackRA('ra_search_submitted', {
-        query_length: (input && input.value) ? input.value.trim().length : 0,
-        content_type: contentType ? contentType.value : '',
-        date_filter: dateFilter ? dateFilter.value : ''
-      });
-    });
-
     trackRA('ra_component_viewed', {
       page_path: window.location.pathname
     });
