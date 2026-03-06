@@ -1,3 +1,7 @@
+// Ensure gtag is defined when GTM is used without standalone gtag snippet
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+
 (function () {
   // Queue events until gtag is confirmed ready
   var eventQueue = [];
