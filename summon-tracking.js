@@ -20,13 +20,16 @@ function gtag(){dataLayer.push(arguments);}
     if (gtagReady && typeof gtag === 'function') {
       gtag('event', eventName, fullParams);
     } else if (typeof gtag === 'function') {
+      // gtag exists but we haven't confirmed it's ready — flush now
       flushQueue();
       gtag('event', eventName, fullParams);
     } else {
+      // gtag not yet available — queue for later
       eventQueue.push({ name: eventName, params: fullParams });
     }
   }
 
+  // Poll until gtag is available, then flush any queued events
   function waitForGtag() {
     if (typeof gtag === 'function') {
       flushQueue();
@@ -35,7 +38,8 @@ function gtag(){dataLayer.push(arguments);}
     }
   }
 
-  // Track custom header link clicks
+  // Track custom header link clicks using data-aid attribute
+  // Catches all custom links automatically — no changes needed when new links are added in Summon admin
   document.addEventListener('click', function(e) {
     var link = e.target.closest('[custom-links-header] a[data-aid]');
     if (link) {
@@ -47,12 +51,14 @@ function gtag(){dataLayer.push(arguments);}
   });
 
   function attachTracking(shadowRoot) {
+    // Guard against duplicate listeners on same root
     if (shadowRoot._raTracked) return;
     shadowRoot._raTracked = true;
 
     shadowRoot.addEventListener('click', function (e) {
       var target = e.target;
 
+      // Example question clicked on landing page
       var exampleQ = target.closest('.t-example-question');
       if (exampleQ) {
         var spanEl = exampleQ.querySelector('span');
@@ -62,6 +68,7 @@ function gtag(){dataLayer.push(arguments);}
         return;
       }
 
+      // Search submitted via submit button click
       if (target.closest('.t-search-submit')) {
         var input = shadowRoot.querySelector('.t-searchbox');
         trackRA('ra_search_submitted', {
@@ -70,6 +77,7 @@ function gtag(){dataLayer.push(arguments);}
         return;
       }
 
+      // New research topic started
       if (
         target.closest('.t-header-landing-link') ||
         target.closest('.t-header-new-research-button') ||
@@ -79,6 +87,7 @@ function gtag(){dataLayer.push(arguments);}
         return;
       }
 
+      // Sidebar toggled
       if (
         target.closest('.t-header-sidenav-button') ||
         target.closest('.t-header-mobile-sidenav-button') ||
@@ -88,11 +97,13 @@ function gtag(){dataLayer.push(arguments);}
         return;
       }
 
+      // Help link clicked inside RA
       if (target.closest('.t-sidenav-help-link')) {
         trackRA('ra_help_link_clicked');
       }
     });
 
+    // Fire component viewed event on attach
     trackRA('ra_component_viewed', {
       page_path: window.location.pathname
     });
@@ -107,6 +118,7 @@ function gtag(){dataLayer.push(arguments);}
 
     var lastShadow = null;
 
+    // Keep checking in case shadow root is recreated (SPA navigation)
     setInterval(function () {
       var shadow = el.shadowRoot;
       if (shadow && shadow !== lastShadow) {
@@ -116,6 +128,7 @@ function gtag(){dataLayer.push(arguments);}
     }, 500);
   }
 
+  // Start both polling chains immediately
   waitForGtag();
 
   if (document.readyState === 'loading') {
