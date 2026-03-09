@@ -41,7 +41,7 @@ function gtag(){dataLayer.push(arguments);}
   // Track custom header link clicks using data-aid attribute
   // Catches all custom links automatically — no changes needed when new links are added in Summon admin
   document.addEventListener('click', function(e) {
-    var link = e.target.closest('[custom-links-header] a[data-aid]');
+    var link = e.target.closest('a[data-aid]');
     if (link) {
       trackRA('custom_link_clicked', {
         link_label: link.getAttribute('data-aid'),
