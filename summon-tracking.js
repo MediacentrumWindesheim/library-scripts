@@ -20,16 +20,13 @@ function gtag(){dataLayer.push(arguments);}
     if (gtagReady && typeof gtag === 'function') {
       gtag('event', eventName, fullParams);
     } else if (typeof gtag === 'function') {
-      // gtag exists but we haven't confirmed it's ready — flush now
       flushQueue();
       gtag('event', eventName, fullParams);
     } else {
-      // gtag not yet available — queue for later
       eventQueue.push({ name: eventName, params: fullParams });
     }
   }
 
-  // Poll until gtag is available, then flush any queued events
   function waitForGtag() {
     if (typeof gtag === 'function') {
       flushQueue();
@@ -38,8 +35,18 @@ function gtag(){dataLayer.push(arguments);}
     }
   }
 
+  // Track custom header link clicks
+  document.addEventListener('click', function(e) {
+    var link = e.target.closest('[custom-links-header] a[data-aid]');
+    if (link) {
+      trackRA('custom_link_clicked', {
+        link_label: link.getAttribute('data-aid'),
+        link_url: link.href || 'no-href'
+      });
+    }
+  });
+
   function attachTracking(shadowRoot) {
-    // Guard against duplicate listeners on same root
     if (shadowRoot._raTracked) return;
     shadowRoot._raTracked = true;
 
@@ -100,7 +107,6 @@ function gtag(){dataLayer.push(arguments);}
 
     var lastShadow = null;
 
-    // Keep checking in case shadow root is recreated (SPA navigation)
     setInterval(function () {
       var shadow = el.shadowRoot;
       if (shadow && shadow !== lastShadow) {
@@ -110,7 +116,6 @@ function gtag(){dataLayer.push(arguments);}
     }, 500);
   }
 
-  // Start both polling chains immediately
   waitForGtag();
 
   if (document.readyState === 'loading') {
@@ -118,4 +123,5 @@ function gtag(){dataLayer.push(arguments);}
   } else {
     waitForComponent();
   }
+
 })();
