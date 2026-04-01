@@ -1,3 +1,32 @@
+// Set the target node for Mutation Observer
+let target = document.querySelector('#content');
+
+// create an observer instance to watch for changes
+let observer = new MutationObserver(function(mutations) {
+
+mutations.forEach(function(mutation) {
+
+// if the mutation observer observes rta-loaded attribute, it's time to run our function
+if ((mutation.target.attributes["custom-links-header"]) && mutation.addedNodes.length > 0) {
+    fixLinkText();
+}
+});
+});
+// configuration of the observer:
+let config = { childList: true, subtree: true };
+
+// pass in the target node, as well as the observer options
+observer.observe(target, config);
+
+function fixLinkText() {
+
+  let customLinkLabels = $(".customColorsSiteLink").children("span");
+  customLinkLabels.each(function() {
+    $(this).html($(this).html().replaceAll("%20", " "));
+  });
+
+}
+
 // Ensure gtag is defined when GTM is used without standalone gtag snippet
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
