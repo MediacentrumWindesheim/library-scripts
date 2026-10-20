@@ -2,6 +2,37 @@
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 
+window.dataLayer = window.dataLayer || [];
+
+(function () {
+  var originalPush = window.dataLayer.push;
+
+  window.dataLayer.push = function () {
+    for (var i = 0; i < arguments.length; i++) {
+      var item = arguments[i];
+
+      if (
+        item &&
+        item.event === 'search' &&
+        (
+          item.eventModel ||
+          item.search_term
+        )
+      ) {
+        console.log('[Search diagnostic]', {
+          payload: item,
+          hasEventModel: !!item.eventModel,
+          hasTopLevelSearchTerm:
+            Object.prototype.hasOwnProperty.call(item, 'search_term'),
+          stack: new Error().stack
+        });
+      }
+    }
+
+    return originalPush.apply(this, arguments);
+  };
+})();
+
 (function () {
   // Queue events until gtag is confirmed ready
   var eventQueue = [];
