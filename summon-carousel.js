@@ -2,6 +2,7 @@
 (() => {
   const FEED = "https://bibliotheek.windesheim.nl/public/carrousel.json";
   const ROOT_ID = "windesheim-koha-carousel";
+  let feedPromise = null;
   const initialized = new WeakSet();
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -112,33 +113,51 @@
     return section;
   }
 
-  async function init(root) {
-    if (initialized.has(root)) return;
-    initialized.add(root);
-    root.textContent = "Boeken laden…";
+async function init(root) {
+  if (initialized.has(root)) return;
+  initialized.add(root);
 
-    try {
-      const response = await fetch(FEED, { cache: "no-store" });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  root.textContent = "Boeken laden…";
 
-      const groups = await response.json();
-      if (!Array.isArray(groups)) throw new Error("Ongeldig JSON-formaat");
-
-      root.replaceChildren();
-      groups.forEach(group => {
-        const carousel = buildCarousel(group);
-        if (carousel) root.append(carousel);
-      });
-
-      if (!root.children.length) {
-        root.textContent = "Er zijn momenteel geen boeken beschikbaar.";
-      }
-    } catch (error) {
-      console.error("Koha carousel:", error);
-      root.textContent = "De boeken konden niet worden geladen.";
-      initialized.delete(root);
+  try {
+    // Slechts één fetch-poging voor de hele pagina
+    if (!feedPromise) {
+      feedPromise = fetch(FEED, { cache: "no-store" })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return response.json();
+        });
     }
+
+    const groups = await feedPromise;
+
+    if (!Array.isArray(groups)) {
+      throw new Error("Ongeldig JSON-formaat");
+    }
+
+    root.replaceChildren();
+
+    groups.forEach(group => {
+      const carousel = buildCarousel(group);
+      if (carousel) root.append(carousel);
+    });
+
+    if (!root.children.length) {
+      root.textContent = "Er zijn momenteel geen boeken beschikbaar.";
+    }
+
+  } catch (error) {
+    console.error("Koha carousel: laden mislukt.", error);
+
+    root.textContent =
+      "De boeken konden niet worden geladen. Probeer het later opnieuw.";
+
+    // Geen reset van feedPromise of initialized:
+    // er worden dus geen automatische nieuwe verzoeken gedaan.
   }
+}
 
   function scan() {
     document.querySelectorAll(`#${ROOT_ID}`).forEach(init);
