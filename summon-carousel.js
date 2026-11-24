@@ -576,20 +576,16 @@
     });
   }
 
-  // Direct proberen
-  scan();
+// Eenmalig initialiseren.
+// Het script staat direct na de carousel-div in het Custom Panel.
+const root = document.getElementById(ROOT_ID);
 
-  // Summon kan het Custom Panel later aan de pagina
-  // toevoegen. Daarom blijven we wijzigingen volgen.
-  const observer = new MutationObserver(() => {
-    scan();
-  });
-
-  if (document.documentElement) {
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true
-    });
-  }
+if (root) {
+  init(root);
+} else {
+  console.warn(
+    "Koha carousel: container niet gevonden. Geen nieuwe verzoeken gestart."
+  );
+}
 
 })();
